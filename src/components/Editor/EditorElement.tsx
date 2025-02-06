@@ -30,10 +30,7 @@ const EditorElement: React.FC<EditorElementProps> = ({
   });
 
   const handleTextFormat = (format: 'bold' | 'italic' | 'underline') => {
-    const style = window.getSelection()?.toString()
-      ? `<span class="${format}">${window.getSelection()?.toString()}</span>`
-      : '';
-    document.execCommand(format, false, style);
+    document.execCommand(format, false);
   };
 
   const handleMouseDown = (e: React.MouseEvent) => {
@@ -74,9 +71,8 @@ const EditorElement: React.FC<EditorElementProps> = ({
           suppressContentEditableWarning
           className="w-full h-full p-2"
           onBlur={(e) => onUpdate({ content: e.currentTarget.innerHTML })}
-        >
-          {element.content}
-        </div>
+          dangerouslySetInnerHTML={{ __html: element.content }}
+        />
       ) : (
         <img
           src={element.content}
