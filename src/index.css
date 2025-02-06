@@ -46,12 +46,14 @@
   background-size: 81.42px 1px;
   background-image: linear-gradient(to right, #e2e8f0 1px, transparent 1px);
   padding: 2rem 0;
+  position: relative;
 }
 
 .editor-element {
   position: absolute;
   cursor: move;
-  transition: all 0.2s ease;
+  transition: transform 0.1s ease;
+  user-select: none;
 }
 
 .editor-element:hover {
@@ -76,7 +78,23 @@
   z-index: 50;
 }
 
+.resize-handle {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  background-color: theme('colors.primary.DEFAULT');
+  border-radius: 50%;
+  z-index: 40;
+}
+
+.resize-handle-se {
+  bottom: -5px;
+  right: -5px;
+  cursor: se-resize;
+}
+
 .preview-mode .editor-toolbar,
-.preview-mode .editor-element:hover {
+.preview-mode .editor-element:hover,
+.preview-mode .resize-handle {
   display: none;
 }
