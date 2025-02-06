@@ -107,14 +107,11 @@ export const useElements = () => {
   };
 
   const deleteElement = (id: string) => {
-    // Find the element to check if it's an image
     const elementToDelete = elements.find(el => el.id === id);
     
     if (elementToDelete?.type === 'image') {
-      // Extract the filename from the URL
       const fileName = elementToDelete.content.split('/').pop();
       if (fileName) {
-        // Delete the image from storage
         supabase.storage
           .from('editor-images')
           .remove([fileName])
@@ -139,7 +136,6 @@ export const useElements = () => {
         return;
       }
 
-      // First, delete all existing elements
       const { error: deleteError } = await supabase
         .from('elements')
         .delete()
@@ -147,7 +143,6 @@ export const useElements = () => {
 
       if (deleteError) throw deleteError;
 
-      // Then insert all current elements
       const elementsToInsert = elements.map(el => ({
         type: el.type,
         content: el.content,
@@ -175,12 +170,9 @@ export const useElements = () => {
 
   useEffect(() => {
     loadElements();
-    const subscription = subscribeToChanges();
-    return () => {
-      subscription();
-    };
   }, []);
 
+  // Only subscribe to changes from other users
   const subscribeToChanges = () => {
     const channel = supabase
       .channel('elements-changes')
@@ -198,6 +190,13 @@ export const useElements = () => {
       supabase.removeChannel(channel);
     };
   };
+
+  useEffect(() => {
+    const unsubscribe = subscribeToChanges();
+    return () => {
+      unsubscribe();
+    };
+  }, []);
 
   return {
     elements,
