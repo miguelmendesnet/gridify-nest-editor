@@ -3,6 +3,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from 'sonner';
 import type { Element } from '../types';
 
+const isValidTextSize = (size: string | null): size is 'S' | 'M' | 'L' | 'XL' => {
+  return size === 'S' || size === 'M' || size === 'L' || size === 'XL';
+};
+
 export const loadElementsFromDatabase = async (userId: string) => {
   const { data, error } = await supabase
     .from('elements')
@@ -18,7 +22,7 @@ export const loadElementsFromDatabase = async (userId: string) => {
     position: { x: Math.round(el.position_x), y: Math.round(el.position_y) },
     size: { width: Math.round(el.width), height: Math.round(el.height) },
     textAlign: el.text_align as 'left' | 'center' | 'right' | undefined,
-    textSize: el.text_size,
+    textSize: isValidTextSize(el.text_size) ? el.text_size : 'M',
   }));
 };
 
