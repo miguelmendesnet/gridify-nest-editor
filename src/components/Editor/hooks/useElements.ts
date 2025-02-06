@@ -9,6 +9,7 @@ export const useElements = () => {
   const [elements, setElements] = useState<Element[]>([]);
   const [unsavedChanges, setUnsavedChanges] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
   const navigate = useNavigate();
 
   const loadElements = async () => {
@@ -130,6 +131,7 @@ export const useElements = () => {
 
   const saveChanges = async () => {
     try {
+      setIsSaving(true);
       const { data: session } = await supabase.auth.getSession();
       if (!session.session) {
         navigate('/auth');
@@ -165,6 +167,8 @@ export const useElements = () => {
     } catch (error) {
       console.error('Error saving changes:', error);
       toast.error('Error saving changes. Please try again.');
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -172,7 +176,6 @@ export const useElements = () => {
     loadElements();
   }, []);
 
-  // Only subscribe to changes from other users
   const subscribeToChanges = () => {
     const channel = supabase
       .channel('elements-changes')
@@ -180,8 +183,10 @@ export const useElements = () => {
         'postgres_changes',
         { event: '*', schema: 'public', table: 'elements' },
         (payload) => {
-          console.log('Change received:', payload);
-          loadElements();
+          if (!isSaving) {
+            console.log('Change received:', payload);
+            loadElements();
+          }
         }
       )
       .subscribe();
@@ -196,7 +201,7 @@ export const useElements = () => {
     return () => {
       unsubscribe();
     };
-  }, []);
+  }, [isSaving]);
 
   return {
     elements,
