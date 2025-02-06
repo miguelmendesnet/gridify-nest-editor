@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Button } from "@/components/ui/button";
-import { Eye, EyeOff, Type, Image as ImageIcon } from 'lucide-react';
+import { Eye, EyeOff, Type, Image as ImageIcon, Grid } from 'lucide-react';
 import EditorElement from './EditorElement';
 import { toast } from 'sonner';
 
@@ -17,6 +17,7 @@ const EditorContainer = () => {
   const [elements, setElements] = useState<Element[]>([]);
   const [selectedElement, setSelectedElement] = useState<string | null>(null);
   const [isPreview, setIsPreview] = useState(false);
+  const [showGrid, setShowGrid] = useState(true);
   const containerRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -92,7 +93,7 @@ const EditorContainer = () => {
       <div className="max-w-[1200px] mx-auto px-8">
         <div 
           ref={containerRef}
-          className={`editor-grid relative ${isPreview ? 'preview-mode' : ''}`}
+          className={`editor-grid relative ${isPreview ? 'preview-mode' : ''} ${!showGrid ? 'hide-grid' : ''}`}
         >
           {elements.map((element) => (
             <EditorElement
@@ -135,6 +136,13 @@ const EditorContainer = () => {
           ) : (
             <><Eye className="w-4 h-4 mr-2" /> Preview</>
           )}
+        </Button>
+        <Button
+          variant="ghost"
+          onClick={() => setShowGrid(!showGrid)}
+        >
+          <Grid className="w-4 h-4 mr-2" />
+          {showGrid ? 'Hide Grid' : 'Show Grid'}
         </Button>
         <input
           type="file"

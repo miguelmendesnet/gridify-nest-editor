@@ -53,6 +53,10 @@
   background-image: none;
 }
 
+.hide-grid {
+  background-image: none;
+}
+
 .editor-element {
   position: absolute;
   cursor: move;
