@@ -21,6 +21,21 @@ const EditorContainer = () => {
     saveChanges
   } = useElements();
 
+  const handleContainerClick = (e: React.MouseEvent) => {
+    // Don't deselect if in preview mode
+    if (isPreview) return;
+
+    // Check if the click target is the container or another non-editor element
+    const target = e.target as HTMLElement;
+    const isClickOnContainer = target === containerRef.current;
+    const isClickOnEditorElement = target.closest('.editor-element');
+
+    // Deselect if clicked outside any editor element
+    if (isClickOnContainer || !isClickOnEditorElement) {
+      setSelectedElement(null);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-secondary/50 flex items-center justify-center">
@@ -35,6 +50,7 @@ const EditorContainer = () => {
         <div 
           ref={containerRef}
           className={`editor-grid relative ${isPreview ? 'preview-mode' : ''} ${!showGrid ? 'hide-grid' : ''}`}
+          onClick={handleContainerClick}
         >
           {elements.map((element) => (
             <EditorElement
