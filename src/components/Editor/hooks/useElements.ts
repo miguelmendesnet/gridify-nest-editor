@@ -1,8 +1,15 @@
+
 import { useState, useEffect, useRef } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { toast } from 'sonner';
 import type { Element } from '../types';
+import { createTextElement, createImageElement } from './useElementCreation';
+import { 
+  loadElementsFromDatabase, 
+  saveElementsToDatabase, 
+  deleteImageFromStorage 
+} from './useElementsDatabase';
 
 export const useElements = () => {
   const [elements, setElements] = useState<Element[]>([]);
@@ -21,32 +28,15 @@ export const useElements = () => {
         return;
       }
 
-      const { data, error } = await supabase
-        .from('elements')
-        .select('*')
-        .eq('user_id', session.user.id);
-
-      if (error) {
-        if (error.message.includes('JWT expired')) {
-          navigate('/auth');
-          return;
-        }
-        throw error;
-      }
-
-      const formattedElements: Element[] = data.map(el => ({
-        id: el.id,
-        type: el.type as 'text' | 'image',
-        content: el.content,
-        position: { x: Math.round(el.position_x), y: Math.round(el.position_y) },
-        size: { width: Math.round(el.width), height: Math.round(el.height) },
-        textAlign: el.text_align as 'left' | 'center' | 'right' | undefined,
-      }));
-
+      const formattedElements = await loadElementsFromDatabase(session.user.id);
       setElements(formattedElements);
       setUnsavedChanges(false);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error loading elements:', error);
+      if (error.message?.includes('JWT expired')) {
+        navigate('/auth');
+        return;
+      }
       toast.error('Error loading elements. Please try refreshing the page.');
     } finally {
       setIsLoading(false);
@@ -54,50 +44,18 @@ export const useElements = () => {
   };
 
   const addTextElement = () => {
-    const newElement: Element = {
-      id: crypto.randomUUID(),
-      type: 'text',
-      content: 'Hello World',
-      position: { x: 0, y: 0 },
-      size: { width: 150, height: 50 },
-      textAlign: 'left',
-      textSize: 'XL',
-    };
-    
+    const newElement = createTextElement();
     setElements(prev => [...prev, newElement]);
     setUnsavedChanges(true);
     toast.success('Added new text element');
   };
 
   const addImageElement = async (file: File) => {
-    try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${crypto.randomUUID()}.${fileExt}`;
-      
-      const { error: uploadError, data } = await supabase.storage
-        .from('editor-images')
-        .upload(fileName, file);
-
-      if (uploadError) throw uploadError;
-
-      const { data: { publicUrl } } = supabase.storage
-        .from('editor-images')
-        .getPublicUrl(fileName);
-
-      const newElement: Element = {
-        id: crypto.randomUUID(),
-        type: 'image',
-        content: publicUrl,
-        position: { x: 0, y: 0 },
-        size: { width: 150, height: 150 },
-      };
-      
+    const newElement = await createImageElement(file);
+    if (newElement) {
       setElements(prev => [...prev, newElement]);
       setUnsavedChanges(true);
       toast.success('Added new image element');
-    } catch (error) {
-      console.error('Error uploading image:', error);
-      toast.error('Failed to upload image. Please try again.');
     }
   };
 
@@ -112,17 +70,7 @@ export const useElements = () => {
     const elementToDelete = elements.find(el => el.id === id);
     
     if (elementToDelete?.type === 'image') {
-      const fileName = elementToDelete.content.split('/').pop();
-      if (fileName) {
-        supabase.storage
-          .from('editor-images')
-          .remove([fileName])
-          .then(({ error }) => {
-            if (error) {
-              console.error('Error deleting image from storage:', error);
-            }
-          });
-      }
+      deleteImageFromStorage(elementToDelete.content);
     }
 
     setElements(prev => prev.filter(el => el.id !== id));
@@ -141,30 +89,7 @@ export const useElements = () => {
         return;
       }
 
-      const { error: deleteError } = await supabase
-        .from('elements')
-        .delete()
-        .eq('user_id', session.session.user.id);
-
-      if (deleteError) throw deleteError;
-
-      const elementsToInsert = elements.map(el => ({
-        type: el.type,
-        content: el.content,
-        position_x: Math.round(el.position.x),
-        position_y: Math.round(el.position.y),
-        width: Math.round(el.size.width),
-        height: Math.round(el.size.height),
-        text_align: el.textAlign,
-        user_id: session.session.user.id
-      }));
-
-      const { error: insertError } = await supabase
-        .from('elements')
-        .insert(elementsToInsert);
-
-      if (insertError) throw insertError;
-
+      await saveElementsToDatabase(elements, session.session.user.id);
       setUnsavedChanges(false);
       toast.success('Changes saved successfully');
     } catch (error) {
