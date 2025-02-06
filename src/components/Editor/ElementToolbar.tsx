@@ -11,6 +11,7 @@ interface ElementToolbarProps {
   currentAlign?: 'left' | 'center' | 'right';
   onTextSize?: (size: 'S' | 'M' | 'L' | 'XL') => void;
   currentTextSize?: 'S' | 'M' | 'L' | 'XL';
+  isPreview?: boolean;
 }
 
 const sizeLabels = {
@@ -27,13 +28,14 @@ const ElementToolbar = ({
   onAlign, 
   currentAlign = 'left',
   onTextSize,
-  currentTextSize = 'M'
+  currentTextSize = 'M',
+  isPreview = false
 }: ElementToolbarProps) => {
   console.log('ElementToolbar rendered:', { type, currentTextSize }); // Debug log
   
   return (
     <div className="editor-toolbar flex items-center gap-1 absolute -top-10 left-0 bg-background border rounded-md p-1 shadow-sm">
-      {type === 'text' && (
+      {type === 'text' && !isPreview && (
         <>
           <Button
             variant="ghost"
@@ -94,13 +96,15 @@ const ElementToolbar = ({
           ))}
         </>
       )}
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={onDelete}
-      >
-        <Trash2 className="w-4 h-4 text-destructive" />
-      </Button>
+      {!isPreview && (
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={onDelete}
+        >
+          <Trash2 className="w-4 h-4 text-destructive" />
+        </Button>
+      )}
     </div>
   );
 };
