@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { Eye, EyeOff, Type, Image as ImageIcon } from 'lucide-react';
 import EditorElement from './EditorElement';
@@ -16,6 +16,7 @@ const EditorContainer = () => {
   const [elements, setElements] = useState<Element[]>([]);
   const [selectedElement, setSelectedElement] = useState<string | null>(null);
   const [isPreview, setIsPreview] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const addElement = (type: 'text' | 'image') => {
     const newElement: Element = {
@@ -40,6 +41,26 @@ const EditorContainer = () => {
     setSelectedElement(null);
     toast.success('Element deleted');
   };
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (isPreview) return;
+      
+      const target = event.target as HTMLElement;
+      const isEditorElement = target.closest('.editor-element');
+      const isToolbar = target.closest('.editor-toolbar');
+      const isButton = target.closest('button');
+
+      if (!isEditorElement && !isToolbar && !isButton) {
+        setSelectedElement(null);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isPreview]);
 
   return (
     <div className="min-h-screen bg-secondary/50 py-8">
@@ -75,7 +96,10 @@ const EditorContainer = () => {
           </Button>
         </div>
         
-        <div className={`editor-grid relative ${isPreview ? 'preview-mode' : ''}`}>
+        <div 
+          ref={containerRef}
+          className={`editor-grid relative ${isPreview ? 'preview-mode' : ''}`}
+        >
           {elements.map((element) => (
             <EditorElement
               key={element.id}
