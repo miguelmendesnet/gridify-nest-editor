@@ -1,6 +1,7 @@
-import React, { useState, useRef } from 'react';
-import { Trash2, Bold, Italic, Underline } from 'lucide-react';
-import { Button } from "@/components/ui/button";
+import React, { useRef } from 'react';
+import ElementToolbar from './ElementToolbar';
+import ResizeHandle from './ResizeHandle';
+import { useElementInteraction } from './useElementInteraction';
 import type { Element } from './EditorContainer';
 
 interface EditorElementProps {
@@ -20,82 +21,13 @@ const EditorElement: React.FC<EditorElementProps> = ({
   onDelete,
   isPreview
 }) => {
-  const [isDragging, setIsDragging] = useState(false);
-  const [isResizing, setIsResizing] = useState(false);
-  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
-  const [resizeStart, setResizeStart] = useState({ width: 0, height: 0, x: 0, y: 0 });
   const elementRef = useRef<HTMLDivElement>(null);
-
-  const GRID_COLUMN_WIDTH = 81.42; // 1140px / 14 columns
-  const MIN_WIDTH = GRID_COLUMN_WIDTH;
-  const MIN_HEIGHT = 50;
-
-  const handleMouseDown = (e: React.MouseEvent) => {
-    if (isPreview) return;
-    
-    const target = e.target as HTMLElement;
-    if (target.classList.contains('resize-handle')) {
-      handleResizeStart(e);
-    } else {
-      handleDragStart(e);
-    }
-    onSelect();
-  };
-
-  const handleDragStart = (e: React.MouseEvent) => {
-    setIsDragging(true);
-    setDragStart({
-      x: e.clientX - element.position.x,
-      y: e.clientY - element.position.y
-    });
-  };
-
-  const handleResizeStart = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setIsResizing(true);
-    setResizeStart({
-      width: element.size.width,
-      height: element.size.height,
-      x: e.clientX,
-      y: e.clientY
-    });
-  };
-
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (isDragging) {
-      const newX = Math.max(0, Math.min(e.clientX - dragStart.x, 1140 - element.size.width));
-      const newY = Math.max(0, e.clientY - dragStart.y);
-      
-      // Snap to grid
-      const snappedX = Math.round(newX / GRID_COLUMN_WIDTH) * GRID_COLUMN_WIDTH;
-      
-      onUpdate({
-        position: { x: snappedX, y: newY }
-      });
-    } else if (isResizing) {
-      const deltaX = e.clientX - resizeStart.x;
-      const deltaY = e.clientY - resizeStart.y;
-      
-      // Calculate new width and height
-      let newWidth = Math.max(MIN_WIDTH, resizeStart.width + deltaX);
-      const newHeight = Math.max(MIN_HEIGHT, resizeStart.height + deltaY);
-      
-      // Snap width to grid
-      newWidth = Math.round(newWidth / GRID_COLUMN_WIDTH) * GRID_COLUMN_WIDTH;
-      
-      // Ensure element doesn't exceed grid boundaries
-      newWidth = Math.min(newWidth, 1140 - element.position.x);
-      
-      onUpdate({
-        size: { width: newWidth, height: newHeight }
-      });
-    }
-  };
-
-  const handleMouseUp = () => {
-    setIsDragging(false);
-    setIsResizing(false);
-  };
+  
+  const { handleDragStart, handleResizeStart } = useElementInteraction({
+    element,
+    onUpdate,
+    isPreview
+  });
 
   const handleTextFormat = (format: 'bold' | 'italic' | 'underline') => {
     const style = window.getSelection()?.toString()
@@ -104,16 +36,15 @@ const EditorElement: React.FC<EditorElementProps> = ({
     document.execCommand(format, false, style);
   };
 
-  React.useEffect(() => {
-    if (isDragging || isResizing) {
-      document.addEventListener('mousemove', handleMouseMove as any);
-      document.addEventListener('mouseup', handleMouseUp);
-      return () => {
-        document.removeEventListener('mousemove', handleMouseMove as any);
-        document.removeEventListener('mouseup', handleMouseUp);
-      };
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (isPreview) return;
+    
+    const target = e.target as HTMLElement;
+    if (!target.classList.contains('resize-handle')) {
+      handleDragStart(e);
     }
-  }, [isDragging, isResizing]);
+    onSelect();
+  };
 
   return (
     <div
@@ -128,41 +59,12 @@ const EditorElement: React.FC<EditorElementProps> = ({
     >
       {isSelected && !isPreview && (
         <>
-          <div className="editor-toolbar">
-            {element.type === 'text' && (
-              <>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleTextFormat('bold')}
-                >
-                  <Bold className="w-4 h-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleTextFormat('italic')}
-                >
-                  <Italic className="w-4 h-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleTextFormat('underline')}
-                >
-                  <Underline className="w-4 h-4" />
-                </Button>
-              </>
-            )}
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onDelete}
-            >
-              <Trash2 className="w-4 h-4 text-destructive" />
-            </Button>
-          </div>
-          <div className="resize-handle resize-handle-se" onMouseDown={handleResizeStart} />
+          <ElementToolbar
+            type={element.type}
+            onDelete={onDelete}
+            onFormat={handleTextFormat}
+          />
+          <ResizeHandle onResizeStart={handleResizeStart} />
         </>
       )}
       
