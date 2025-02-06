@@ -65,7 +65,8 @@
   user-select: none;
 }
 
-.editor-element:hover {
+/* Only show hover outline when not in preview mode */
+.editor-element:not(.preview-mode *):hover {
   outline: 2px solid theme('colors.primary.DEFAULT');
 }
 
