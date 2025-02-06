@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Button } from "@/components/ui/button";
-import { Eye, EyeOff, Type, Image as ImageIcon, Grid } from 'lucide-react';
+import { Eye, EyeOff, Type, Image as ImageIcon, Grid, LogOut } from 'lucide-react';
 import EditorElement from './EditorElement';
 import { toast } from 'sonner';
+import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from "react-router-dom";
 
 export type Element = {
   id: string;
@@ -20,8 +22,56 @@ const EditorContainer = () => {
   const [showGrid, setShowGrid] = useState(true);
   const containerRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const navigate = useNavigate();
 
-  const addTextElement = () => {
+  useEffect(() => {
+    loadElements();
+    subscribeToChanges();
+  }, []);
+
+  const loadElements = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('elements')
+        .select('*');
+
+      if (error) throw error;
+
+      const formattedElements = data.map(el => ({
+        id: el.id,
+        type: el.type,
+        content: el.content,
+        position: { x: el.position_x, y: el.position_y },
+        size: { width: el.width, height: el.height },
+        textAlign: el.text_align,
+      }));
+
+      setElements(formattedElements);
+    } catch (error) {
+      toast.error('Error loading elements');
+      console.error('Error:', error);
+    }
+  };
+
+  const subscribeToChanges = () => {
+    const channel = supabase
+      .channel('elements-changes')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'elements' },
+        (payload) => {
+          console.log('Change received:', payload);
+          loadElements();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  };
+
+  const addTextElement = async () => {
     const newElement: Element = {
       id: `element-${Date.now()}`,
       type: 'text',
@@ -30,24 +80,51 @@ const EditorContainer = () => {
       size: { width: 150, height: 50 },
       textAlign: 'left',
     };
-    setElements([...elements, newElement]);
-    toast.success('Added new text element');
+
+    try {
+      const { error } = await supabase
+        .from('elements')
+        .insert({
+          type: newElement.type,
+          content: newElement.content,
+          position_x: newElement.position.x,
+          position_y: newElement.position.y,
+          width: newElement.size.width,
+          height: newElement.size.height,
+          text_align: newElement.textAlign,
+        });
+
+      if (error) throw error;
+      toast.success('Added new text element');
+    } catch (error) {
+      toast.error('Error adding text element');
+      console.error('Error:', error);
+    }
   };
 
-  const handleImageSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
       const reader = new FileReader();
-      reader.onload = (e) => {
-        const newElement: Element = {
-          id: `element-${Date.now()}`,
-          type: 'image',
-          content: e.target?.result as string,
-          position: { x: 0, y: 0 },
-          size: { width: 150, height: 150 },
-        };
-        setElements([...elements, newElement]);
-        toast.success('Added new image element');
+      reader.onload = async (e) => {
+        try {
+          const { error } = await supabase
+            .from('elements')
+            .insert({
+              type: 'image',
+              content: e.target?.result as string,
+              position_x: 0,
+              position_y: 0,
+              width: 150,
+              height: 150,
+            });
+
+          if (error) throw error;
+          toast.success('Added new image element');
+        } catch (error) {
+          toast.error('Error adding image element');
+          console.error('Error:', error);
+        }
       };
       reader.readAsDataURL(file);
     }
@@ -56,16 +133,52 @@ const EditorContainer = () => {
     }
   };
 
-  const updateElement = (id: string, updates: Partial<Element>) => {
-    setElements(elements.map(el => 
-      el.id === id ? { ...el, ...updates } : el
-    ));
+  const updateElement = async (id: string, updates: Partial<Element>) => {
+    try {
+      const { error } = await supabase
+        .from('elements')
+        .update({
+          content: updates.content,
+          position_x: updates.position?.x,
+          position_y: updates.position?.y,
+          width: updates.size?.width,
+          height: updates.size?.height,
+          text_align: updates.textAlign,
+        })
+        .eq('id', id);
+
+      if (error) throw error;
+    } catch (error) {
+      toast.error('Error updating element');
+      console.error('Error:', error);
+    }
   };
 
-  const deleteElement = (id: string) => {
-    setElements(elements.filter(el => el.id !== id));
-    setSelectedElement(null);
-    toast.success('Element deleted');
+  const deleteElement = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('elements')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+      setSelectedElement(null);
+      toast.success('Element deleted');
+    } catch (error) {
+      toast.error('Error deleting element');
+      console.error('Error:', error);
+    }
+  };
+
+  const handleSignOut = async () => {
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      navigate('/auth');
+    } catch (error) {
+      toast.error('Error signing out');
+      console.error('Error:', error);
+    }
   };
 
   useEffect(() => {
@@ -143,6 +256,14 @@ const EditorContainer = () => {
         >
           <Grid className="w-4 h-4 mr-2" />
           {showGrid ? 'Hide Grid' : 'Show Grid'}
+        </Button>
+        <div className="w-px h-8 bg-border mx-1" />
+        <Button
+          variant="ghost"
+          onClick={handleSignOut}
+        >
+          <LogOut className="w-4 h-4 mr-2" />
+          Sign Out
         </Button>
         <input
           type="file"
