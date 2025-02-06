@@ -1,16 +1,14 @@
-import React, { useState, useRef, useEffect } from 'react';
+
+import React, { useState, useRef } from 'react';
 import EditorElement from './EditorElement';
 import EditorToolbar from './EditorToolbar';
 import { useElements } from './hooks/useElements';
-import { toast } from 'sonner';
 
 const EditorContainer = () => {
   const [selectedElement, setSelectedElement] = useState<string | null>(null);
   const [isPreview, setIsPreview] = useState(false);
   const [showGrid, setShowGrid] = useState(true);
-  const [isAutoSaveEnabled, setIsAutoSaveEnabled] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
-  const autoSaveIntervalRef = useRef<number | null>(null);
   
   const {
     elements,
@@ -37,38 +35,6 @@ const EditorContainer = () => {
       setSelectedElement(null);
     }
   };
-
-  useEffect(() => {
-    if (isAutoSaveEnabled && unsavedChanges) {
-      // Clear any existing interval
-      if (autoSaveIntervalRef.current) {
-        window.clearInterval(autoSaveIntervalRef.current);
-      }
-
-      // Set up new auto-save interval
-      autoSaveIntervalRef.current = window.setInterval(() => {
-        if (unsavedChanges) {
-          saveChanges();
-        }
-      }, 5000);
-    }
-
-    // Cleanup function to clear interval when auto-save is disabled or component unmounts
-    return () => {
-      if (autoSaveIntervalRef.current) {
-        window.clearInterval(autoSaveIntervalRef.current);
-        autoSaveIntervalRef.current = null;
-      }
-    };
-  }, [isAutoSaveEnabled, unsavedChanges]);
-
-  // Clear auto-save when entering preview mode
-  useEffect(() => {
-    if (isPreview && autoSaveIntervalRef.current) {
-      window.clearInterval(autoSaveIntervalRef.current);
-      autoSaveIntervalRef.current = null;
-    }
-  }, [isPreview]);
 
   if (isLoading) {
     return (
@@ -107,16 +73,11 @@ const EditorContainer = () => {
         isPreview={isPreview}
         showGrid={showGrid}
         hasUnsavedChanges={unsavedChanges}
-        isAutoSaveEnabled={isAutoSaveEnabled}
         onTogglePreview={() => setIsPreview(!isPreview)}
         onToggleGrid={() => setShowGrid(!showGrid)}
         onAddText={addTextElement}
         onAddImage={addImageElement}
         onSaveChanges={saveChanges}
-        onToggleAutoSave={() => {
-          setIsAutoSaveEnabled(!isAutoSaveEnabled);
-          toast.success(!isAutoSaveEnabled ? 'Auto-save enabled' : 'Auto-save disabled');
-        }}
       />
     </div>
   );
