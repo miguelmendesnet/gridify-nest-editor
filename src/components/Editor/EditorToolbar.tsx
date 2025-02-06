@@ -1,6 +1,7 @@
+
 import React, { useRef } from 'react';
 import { Button } from "@/components/ui/button";
-import { Eye, EyeOff, Type, Image as ImageIcon, Grid, LogOut, Save } from 'lucide-react';
+import { Eye, EyeOff, Type, Image as ImageIcon, Grid, LogOut, Save, Timer } from 'lucide-react';
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from 'sonner';
@@ -9,22 +10,26 @@ interface EditorToolbarProps {
   isPreview: boolean;
   showGrid: boolean;
   hasUnsavedChanges: boolean;
+  isAutoSaveEnabled: boolean;
   onTogglePreview: () => void;
   onToggleGrid: () => void;
   onAddText: () => void;
   onAddImage: (file: File) => void;
   onSaveChanges: () => void;
+  onToggleAutoSave: () => void;
 }
 
 const EditorToolbar = ({
   isPreview,
   showGrid,
   hasUnsavedChanges,
+  isAutoSaveEnabled,
   onTogglePreview,
   onToggleGrid,
   onAddText,
   onAddImage,
-  onSaveChanges
+  onSaveChanges,
+  onToggleAutoSave
 }: EditorToolbarProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
@@ -102,6 +107,14 @@ const EditorToolbar = ({
       >
         <Save className="w-4 h-4 mr-2" />
         Save Changes
+      </Button>
+      <Button
+        variant={isAutoSaveEnabled ? "default" : "ghost"}
+        onClick={onToggleAutoSave}
+        disabled={isPreview}
+      >
+        <Timer className="w-4 h-4 mr-2" />
+        {isAutoSaveEnabled ? 'Disable Auto-save' : 'Enable Auto-save'}
       </Button>
       <div className="w-px h-8 bg-border mx-1" />
       <Button
