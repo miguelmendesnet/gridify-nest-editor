@@ -1,5 +1,5 @@
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import EditorElement from './EditorElement';
 import EditorToolbar from './EditorToolbar';
 import { useElements } from './hooks/useElements';
@@ -8,6 +8,7 @@ const EditorContainer = () => {
   const [selectedElement, setSelectedElement] = useState<string | null>(null);
   const [isPreview, setIsPreview] = useState(false);
   const [showGrid, setShowGrid] = useState(true);
+  const [isTransitioning, setIsTransitioning] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   
   const {
@@ -18,23 +19,41 @@ const EditorContainer = () => {
     addImageElement,
     updateElement,
     deleteElement,
-    saveChanges
+    saveChanges: originalSaveChanges
   } = useElements();
 
   const handleContainerClick = (e: React.MouseEvent) => {
-    // Don't deselect if in preview mode
     if (isPreview) return;
 
-    // Check if the click target is the container or another non-editor element
     const target = e.target as HTMLElement;
     const isClickOnContainer = target === containerRef.current;
     const isClickOnEditorElement = target.closest('.editor-element');
 
-    // Deselect if clicked outside any editor element
     if (isClickOnContainer || !isClickOnEditorElement) {
       setSelectedElement(null);
     }
   };
+
+  // Enhanced save changes with animation
+  const saveChanges = async () => {
+    setIsTransitioning(true);
+    await originalSaveChanges();
+    // Reset transition state after a brief delay to ensure smooth animation
+    setTimeout(() => {
+      setIsTransitioning(false);
+    }, 300); // Match this with the CSS transition duration
+  };
+
+  // Effect to handle fade animation when elements change
+  useEffect(() => {
+    if (elements.length > 0) {
+      setIsTransitioning(true);
+      const timer = setTimeout(() => {
+        setIsTransitioning(false);
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [elements]);
 
   if (isLoading) {
     return (
@@ -49,7 +68,9 @@ const EditorContainer = () => {
       <div className="max-w-[1200px] mx-auto px-8">
         <div 
           ref={containerRef}
-          className={`editor-grid relative ${isPreview ? 'preview-mode' : ''} ${!showGrid ? 'hide-grid' : ''}`}
+          className={`editor-grid relative transition-opacity duration-300 ${
+            isTransitioning ? 'opacity-0' : 'opacity-100'
+          } ${isPreview ? 'preview-mode' : ''} ${!showGrid ? 'hide-grid' : ''}`}
           onClick={handleContainerClick}
         >
           {elements.map((element) => (
