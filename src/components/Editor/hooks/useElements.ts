@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
@@ -57,6 +56,22 @@ export const useElements = () => {
       setUnsavedChanges(true);
       toast.success('Added new image element');
     }
+  };
+
+  const duplicateElement = (element: Element): Element => {
+    const duplicatedElement: Element = {
+      ...element,
+      id: crypto.randomUUID(),
+      position: {
+        x: element.position.x + 20,
+        y: element.position.y + 20
+      }
+    };
+    
+    setElements(prev => [...prev, duplicatedElement]);
+    setUnsavedChanges(true);
+    toast.success('Element duplicated');
+    return duplicatedElement;
   };
 
   const updateElement = (id: string, updates: Partial<Element>) => {
@@ -133,6 +148,7 @@ export const useElements = () => {
     addImageElement,
     updateElement,
     deleteElement,
+    duplicateElement,
     saveChanges
   };
 };

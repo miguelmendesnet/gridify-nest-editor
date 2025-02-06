@@ -3,6 +3,7 @@ import React, { useState, useRef } from 'react';
 import EditorElement from './EditorElement';
 import EditorToolbar from './EditorToolbar';
 import { useElements } from './hooks/useElements';
+import { Element } from './types';
 
 const EditorContainer = () => {
   const [selectedElement, setSelectedElement] = useState<string | null>(null);
@@ -19,6 +20,7 @@ const EditorContainer = () => {
     addImageElement,
     updateElement,
     deleteElement,
+    duplicateElement,
     saveChanges: originalSaveChanges
   } = useElements();
 
@@ -34,14 +36,12 @@ const EditorContainer = () => {
     }
   };
 
-  // Enhanced save changes with animation
   const saveChanges = async () => {
     setIsTransitioning(true);
     await originalSaveChanges();
-    // Reset transition state after a brief delay to ensure smooth animation
     setTimeout(() => {
       setIsTransitioning(false);
-    }, 300); // Match this with the CSS transition duration
+    }, 300);
   };
 
   if (isLoading) {
@@ -73,6 +73,12 @@ const EditorContainer = () => {
                 deleteElement(element.id);
                 setSelectedElement(null);
               }}
+              onDuplicate={() => {
+                if (element.type === 'image') {
+                  const duplicated = duplicateElement(element);
+                  setSelectedElement(duplicated.id);
+                }
+              }}
               isPreview={isPreview}
             />
           ))}
@@ -94,3 +100,4 @@ const EditorContainer = () => {
 };
 
 export default EditorContainer;
+

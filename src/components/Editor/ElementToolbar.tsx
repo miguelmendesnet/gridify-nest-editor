@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Trash2, Bold, Italic, Underline, AlignLeft, AlignCenter, AlignRight } from 'lucide-react';
+import { Trash2, Bold, Italic, Underline, AlignLeft, AlignCenter, AlignRight, Copy } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 
 interface ElementToolbarProps {
@@ -12,6 +12,7 @@ interface ElementToolbarProps {
   onTextSize?: (size: 'S' | 'M' | 'L' | 'XL') => void;
   currentTextSize?: 'S' | 'M' | 'L' | 'XL';
   isPreview?: boolean;
+  onDuplicate?: () => void;
 }
 
 const sizeLabels = {
@@ -29,7 +30,8 @@ const ElementToolbar = ({
   currentAlign = 'left',
   onTextSize,
   currentTextSize = 'M',
-  isPreview = false
+  isPreview = false,
+  onDuplicate
 }: ElementToolbarProps) => {
   console.log('ElementToolbar rendered:', { type, currentTextSize }); // Debug log
   
@@ -81,7 +83,6 @@ const ElementToolbar = ({
             <AlignRight className="w-4 h-4" />
           </Button>
           <div className="h-4 w-px bg-border mx-1" />
-          {console.log('Rendering text size buttons')} {/* Debug log */}
           {(Object.keys(sizeLabels) as Array<'S' | 'M' | 'L' | 'XL'>).map((size) => (
             <Button
               key={size}
@@ -94,6 +95,18 @@ const ElementToolbar = ({
               <span className="text-[10px] text-muted-foreground">{sizeLabels[size]}</span>
             </Button>
           ))}
+        </>
+      )}
+      {type === 'image' && !isPreview && (
+        <>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onDuplicate}
+          >
+            <Copy className="w-4 h-4" />
+          </Button>
+          <div className="h-4 w-px bg-border mx-1" />
         </>
       )}
       {!isPreview && (
@@ -110,3 +123,4 @@ const ElementToolbar = ({
 };
 
 export default ElementToolbar;
+

@@ -11,6 +11,7 @@ interface EditorElementProps {
   onSelect: () => void;
   onUpdate: (updates: Partial<Element>) => void;
   onDelete: () => void;
+  onDuplicate?: () => void;
   isPreview: boolean;
 }
 
@@ -20,6 +21,7 @@ const EditorElement: React.FC<EditorElementProps> = ({
   onSelect,
   onUpdate,
   onDelete,
+  onDuplicate,
   isPreview
 }) => {
   const elementRef = useRef<HTMLDivElement>(null);
@@ -44,11 +46,11 @@ const EditorElement: React.FC<EditorElementProps> = ({
 
   const getTextSizeClass = (size?: 'S' | 'M' | 'L' | 'XL') => {
     switch (size) {
-      case 'S': return 'text-xs'; // 12px
-      case 'M': return 'text-sm'; // 14px
-      case 'L': return 'text-xl'; // 22px
-      case 'XL': return 'text-4xl'; // 36px
-      default: return 'text-sm'; // Default to M (14px)
+      case 'S': return 'text-xs';
+      case 'M': return 'text-sm';
+      case 'L': return 'text-xl';
+      case 'XL': return 'text-4xl';
+      default: return 'text-sm';
     }
   };
 
@@ -83,6 +85,8 @@ const EditorElement: React.FC<EditorElementProps> = ({
             currentAlign={element.textAlign}
             onTextSize={handleTextSize}
             currentTextSize={element.textSize}
+            isPreview={isPreview}
+            onDuplicate={onDuplicate}
           />
           <ResizeHandle onResizeStart={handleResizeStart} />
         </>
@@ -110,3 +114,4 @@ const EditorElement: React.FC<EditorElementProps> = ({
 };
 
 export default EditorElement;
+
