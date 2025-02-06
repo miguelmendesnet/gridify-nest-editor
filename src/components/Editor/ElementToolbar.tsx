@@ -23,7 +23,7 @@ const ElementToolbar = ({
   currentTextSize = 'M'
 }: ElementToolbarProps) => {
   return (
-    <div className="editor-toolbar">
+    <div className="editor-toolbar flex items-center gap-1 absolute -top-10 left-0 bg-background border rounded-md p-1 shadow-sm">
       {type === 'text' && (
         <>
           <Button
