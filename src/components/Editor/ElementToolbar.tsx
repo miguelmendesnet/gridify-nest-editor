@@ -29,6 +29,8 @@ const ElementToolbar = ({
   onTextSize,
   currentTextSize = 'M'
 }: ElementToolbarProps) => {
+  console.log('ElementToolbar rendered:', { type, currentTextSize }); // Debug log
+  
   return (
     <div className="editor-toolbar flex items-center gap-1 absolute -top-10 left-0 bg-background border rounded-md p-1 shadow-sm">
       {type === 'text' && (
@@ -77,6 +79,7 @@ const ElementToolbar = ({
             <AlignRight className="w-4 h-4" />
           </Button>
           <div className="h-4 w-px bg-border mx-1" />
+          {console.log('Rendering text size buttons')} {/* Debug log */}
           {(Object.keys(sizeLabels) as Array<'S' | 'M' | 'L' | 'XL'>).map((size) => (
             <Button
               key={size}
