@@ -31,19 +31,26 @@ const EditorContainer = () => {
 
   const loadElements = async () => {
     try {
+      const { data: session } = await supabase.auth.getSession();
+      if (!session.session) {
+        navigate('/auth');
+        return;
+      }
+
       const { data, error } = await supabase
         .from('elements')
-        .select('*');
+        .select('*')
+        .eq('user_id', session.session.user.id);
 
       if (error) throw error;
 
-      const formattedElements = data.map(el => ({
+      const formattedElements: Element[] = data.map(el => ({
         id: el.id,
-        type: el.type,
+        type: el.type as 'text' | 'image',
         content: el.content,
         position: { x: el.position_x, y: el.position_y },
         size: { width: el.width, height: el.height },
-        textAlign: el.text_align,
+        textAlign: el.text_align as 'left' | 'center' | 'right' | undefined,
       }));
 
       setElements(formattedElements);
@@ -72,27 +79,27 @@ const EditorContainer = () => {
   };
 
   const addTextElement = async () => {
-    const newElement: Element = {
-      id: `element-${Date.now()}`,
-      type: 'text',
-      content: 'New Text',
-      position: { x: 0, y: 0 },
-      size: { width: 150, height: 50 },
-      textAlign: 'left',
-    };
-
     try {
+      const { data: session } = await supabase.auth.getSession();
+      if (!session.session) {
+        navigate('/auth');
+        return;
+      }
+
+      const newElement = {
+        type: 'text' as const,
+        content: 'New Text',
+        position_x: 0,
+        position_y: 0,
+        width: 150,
+        height: 50,
+        text_align: 'left' as const,
+        user_id: session.session.user.id
+      };
+
       const { error } = await supabase
         .from('elements')
-        .insert({
-          type: newElement.type,
-          content: newElement.content,
-          position_x: newElement.position.x,
-          position_y: newElement.position.y,
-          width: newElement.size.width,
-          height: newElement.size.height,
-          text_align: newElement.textAlign,
-        });
+        .insert(newElement);
 
       if (error) throw error;
       toast.success('Added new text element');
@@ -105,9 +112,15 @@ const EditorContainer = () => {
   const handleImageSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onload = async (e) => {
-        try {
+      try {
+        const { data: session } = await supabase.auth.getSession();
+        if (!session.session) {
+          navigate('/auth');
+          return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = async (e) => {
           const { error } = await supabase
             .from('elements')
             .insert({
@@ -117,16 +130,17 @@ const EditorContainer = () => {
               position_y: 0,
               width: 150,
               height: 150,
+              user_id: session.session.user.id
             });
 
           if (error) throw error;
           toast.success('Added new image element');
-        } catch (error) {
-          toast.error('Error adding image element');
-          console.error('Error:', error);
-        }
-      };
-      reader.readAsDataURL(file);
+        };
+        reader.readAsDataURL(file);
+      } catch (error) {
+        toast.error('Error adding image element');
+        console.error('Error:', error);
+      }
     }
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
