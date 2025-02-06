@@ -20,19 +20,37 @@ const EditorContainer = () => {
   const [selectedElement, setSelectedElement] = useState<string | null>(null);
   const [isPreview, setIsPreview] = useState(false);
   const [showGrid, setShowGrid] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
   const containerRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
+    checkSession();
     loadElements();
-    subscribeToChanges();
+    const subscription = subscribeToChanges();
+    return () => {
+      subscription();
+    };
   }, []);
+
+  const checkSession = async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        navigate('/auth');
+      }
+    } catch (error) {
+      console.error('Session check error:', error);
+      navigate('/auth');
+    }
+  };
 
   const loadElements = async () => {
     try {
-      const { data: session } = await supabase.auth.getSession();
-      if (!session.session) {
+      setIsLoading(true);
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
         navigate('/auth');
         return;
       }
@@ -40,9 +58,15 @@ const EditorContainer = () => {
       const { data, error } = await supabase
         .from('elements')
         .select('*')
-        .eq('user_id', session.session.user.id);
+        .eq('user_id', session.user.id);
 
-      if (error) throw error;
+      if (error) {
+        if (error.message.includes('JWT expired')) {
+          navigate('/auth');
+          return;
+        }
+        throw error;
+      }
 
       const formattedElements: Element[] = data.map(el => ({
         id: el.id,
@@ -55,8 +79,10 @@ const EditorContainer = () => {
 
       setElements(formattedElements);
     } catch (error) {
-      toast.error('Error loading elements');
-      console.error('Error:', error);
+      console.error('Error loading elements:', error);
+      toast.error('Error loading elements. Please try refreshing the page.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -196,46 +222,32 @@ const EditorContainer = () => {
 
   const handleSignOut = async () => {
     try {
-      const { data: session } = await supabase.auth.getSession();
-      if (!session.session) {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
         navigate('/auth');
         return;
       }
       
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
-      
+      await supabase.auth.signOut();
       navigate('/auth');
     } catch (error: any) {
-      console.error('Error:', error);
+      console.error('Sign out error:', error);
       // If we get a session not found error, just redirect to auth
-      if (error.message.includes('session_not_found')) {
+      if (error.message?.includes('session_not_found')) {
         navigate('/auth');
         return;
       }
-      toast.error('Error signing out');
+      toast.error('Error signing out. Please try again.');
     }
   };
 
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (isPreview) return;
-      
-      const target = event.target as HTMLElement;
-      const isEditorElement = target.closest('.editor-element');
-      const isToolbar = target.closest('.editor-toolbar');
-      const isButton = target.closest('button');
-
-      if (!isEditorElement && !isToolbar && !isButton) {
-        setSelectedElement(null);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [isPreview]);
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-secondary/50 flex items-center justify-center">
+        <div className="text-lg">Loading...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-secondary/50 py-8">
