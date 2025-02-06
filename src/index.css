@@ -110,14 +110,26 @@
   display: none;
 }
 
-/* Disable all hover effects in preview mode */
+/* Enhanced preview mode styles to prevent any hover effects */
 .preview-mode .editor-element {
-  cursor: default;
-  transition: none;
+  cursor: default !important;
+  transition: none !important;
+  pointer-events: none !important;
 }
 
 .preview-mode .editor-element * {
-  pointer-events: none;
+  pointer-events: none !important;
+  user-select: none !important;
+}
+
+/* Prevent any hover effects on images and text in preview mode */
+.preview-mode .editor-element img,
+.preview-mode .editor-element [contenteditable],
+.preview-mode .editor-element div {
+  -webkit-user-drag: none !important;
+  -webkit-tap-highlight-color: transparent !important;
+  -webkit-touch-callout: none !important;
+  pointer-events: none !important;
 }
 
 @keyframes fade-in {
@@ -145,4 +157,3 @@
 .animate-scale-in {
   animation: scale-in 0.3s ease-out forwards;
 }
-
