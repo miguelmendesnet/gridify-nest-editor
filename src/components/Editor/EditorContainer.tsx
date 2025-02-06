@@ -196,12 +196,24 @@ const EditorContainer = () => {
 
   const handleSignOut = async () => {
     try {
+      const { data: session } = await supabase.auth.getSession();
+      if (!session.session) {
+        navigate('/auth');
+        return;
+      }
+      
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
+      
       navigate('/auth');
-    } catch (error) {
-      toast.error('Error signing out');
+    } catch (error: any) {
       console.error('Error:', error);
+      // If we get a session not found error, just redirect to auth
+      if (error.message.includes('session_not_found')) {
+        navigate('/auth');
+        return;
+      }
+      toast.error('Error signing out');
     }
   };
 
