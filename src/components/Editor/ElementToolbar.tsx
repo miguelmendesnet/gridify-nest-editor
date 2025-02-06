@@ -13,6 +13,13 @@ interface ElementToolbarProps {
   currentTextSize?: 'S' | 'M' | 'L' | 'XL';
 }
 
+const sizeLabels = {
+  'S': '12px',
+  'M': '14px',
+  'L': '22px',
+  'XL': '36px'
+};
+
 const ElementToolbar = ({ 
   type, 
   onDelete, 
@@ -70,15 +77,15 @@ const ElementToolbar = ({
             <AlignRight className="w-4 h-4" />
           </Button>
           <div className="h-4 w-px bg-border mx-1" />
-          {['S', 'M', 'L', 'XL'].map((size) => (
+          {(Object.keys(sizeLabels) as Array<'S' | 'M' | 'L' | 'XL'>).map((size) => (
             <Button
               key={size}
               variant={currentTextSize === size ? 'secondary' : 'ghost'}
               size="sm"
-              onClick={() => onTextSize?.(size as 'S' | 'M' | 'L' | 'XL')}
-              className="w-8"
+              onClick={() => onTextSize?.(size)}
+              className="w-12"
             >
-              {size}
+              {sizeLabels[size]}
             </Button>
           ))}
         </>

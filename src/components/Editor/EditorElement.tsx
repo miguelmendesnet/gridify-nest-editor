@@ -44,11 +44,11 @@ const EditorElement: React.FC<EditorElementProps> = ({
 
   const getTextSizeClass = (size?: 'S' | 'M' | 'L' | 'XL') => {
     switch (size) {
-      case 'S': return 'text-sm';
-      case 'M': return 'text-base';
-      case 'L': return 'text-lg';
-      case 'XL': return 'text-2xl';
-      default: return 'text-base';
+      case 'S': return 'text-xs'; // 12px
+      case 'M': return 'text-sm'; // 14px
+      case 'L': return 'text-xl'; // 22px
+      case 'XL': return 'text-4xl'; // 36px
+      default: return 'text-sm'; // Default to M (14px)
     }
   };
 
