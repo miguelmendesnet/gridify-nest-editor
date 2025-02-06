@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { toast } from 'sonner';
@@ -11,6 +11,7 @@ export const useElements = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const navigate = useNavigate();
+  const isSavingRef = useRef(false);
 
   const loadElements = async () => {
     try {
@@ -132,6 +133,8 @@ export const useElements = () => {
   const saveChanges = async () => {
     try {
       setIsSaving(true);
+      isSavingRef.current = true;
+      
       const { data: session } = await supabase.auth.getSession();
       if (!session.session) {
         navigate('/auth');
@@ -169,6 +172,7 @@ export const useElements = () => {
       toast.error('Error saving changes. Please try again.');
     } finally {
       setIsSaving(false);
+      isSavingRef.current = false;
     }
   };
 
@@ -176,14 +180,14 @@ export const useElements = () => {
     loadElements();
   }, []);
 
-  const subscribeToChanges = () => {
+  useEffect(() => {
     const channel = supabase
       .channel('elements-changes')
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'elements' },
         (payload) => {
-          if (!isSaving) {
+          if (!isSavingRef.current) {
             console.log('Change received:', payload);
             loadElements();
           }
@@ -194,14 +198,7 @@ export const useElements = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  };
-
-  useEffect(() => {
-    const unsubscribe = subscribeToChanges();
-    return () => {
-      unsubscribe();
-    };
-  }, [isSaving]);
+  }, []);
 
   return {
     elements,
