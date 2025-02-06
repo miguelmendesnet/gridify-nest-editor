@@ -10,6 +10,7 @@ export type Element = {
   content: string;
   position: { x: number; y: number };
   size: { width: number; height: number };
+  textAlign?: 'left' | 'center' | 'right';
 };
 
 const EditorContainer = () => {
@@ -26,6 +27,7 @@ const EditorContainer = () => {
       content: 'New Text',
       position: { x: 0, y: 0 },
       size: { width: 150, height: 50 },
+      textAlign: 'left',
     };
     setElements([...elements, newElement]);
     toast.success('Added new text element');
@@ -48,7 +50,6 @@ const EditorContainer = () => {
       };
       reader.readAsDataURL(file);
     }
-    // Reset the input value to allow selecting the same file again
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -89,44 +90,6 @@ const EditorContainer = () => {
   return (
     <div className="min-h-screen bg-secondary/50 py-8">
       <div className="max-w-[1200px] mx-auto px-8">
-        <div className="flex justify-between items-center mb-8">
-          <div className="flex gap-4">
-            <Button
-              variant="outline"
-              onClick={addTextElement}
-              disabled={isPreview}
-            >
-              <Type className="w-4 h-4 mr-2" />
-              Add Text
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => fileInputRef.current?.click()}
-              disabled={isPreview}
-            >
-              <ImageIcon className="w-4 h-4 mr-2" />
-              Add Image
-            </Button>
-            <input
-              type="file"
-              ref={fileInputRef}
-              className="hidden"
-              accept="image/*"
-              onChange={handleImageSelect}
-            />
-          </div>
-          <Button
-            variant="ghost"
-            onClick={() => setIsPreview(!isPreview)}
-          >
-            {isPreview ? (
-              <><EyeOff className="w-4 h-4 mr-2" /> Exit Preview</>
-            ) : (
-              <><Eye className="w-4 h-4 mr-2" /> Preview</>
-            )}
-          </Button>
-        </div>
-        
         <div 
           ref={containerRef}
           className={`editor-grid relative ${isPreview ? 'preview-mode' : ''}`}
@@ -143,6 +106,43 @@ const EditorContainer = () => {
             />
           ))}
         </div>
+      </div>
+      
+      <div className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-background rounded-lg shadow-lg border p-2 flex gap-2">
+        <Button
+          variant="outline"
+          onClick={addTextElement}
+          disabled={isPreview}
+        >
+          <Type className="w-4 h-4 mr-2" />
+          Add Text
+        </Button>
+        <Button
+          variant="outline"
+          onClick={() => fileInputRef.current?.click()}
+          disabled={isPreview}
+        >
+          <ImageIcon className="w-4 h-4 mr-2" />
+          Add Image
+        </Button>
+        <div className="w-px h-8 bg-border mx-1" />
+        <Button
+          variant="ghost"
+          onClick={() => setIsPreview(!isPreview)}
+        >
+          {isPreview ? (
+            <><EyeOff className="w-4 h-4 mr-2" /> Exit Preview</>
+          ) : (
+            <><Eye className="w-4 h-4 mr-2" /> Preview</>
+          )}
+        </Button>
+        <input
+          type="file"
+          ref={fileInputRef}
+          className="hidden"
+          accept="image/*"
+          onChange={handleImageSelect}
+        />
       </div>
     </div>
   );

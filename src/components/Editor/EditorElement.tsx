@@ -33,6 +33,10 @@ const EditorElement: React.FC<EditorElementProps> = ({
     document.execCommand(format, false);
   };
 
+  const handleAlignment = (alignment: 'left' | 'center' | 'right') => {
+    onUpdate({ textAlign: alignment });
+  };
+
   const handleMouseDown = (e: React.MouseEvent) => {
     if (isPreview) return;
     
@@ -60,6 +64,8 @@ const EditorElement: React.FC<EditorElementProps> = ({
             type={element.type}
             onDelete={onDelete}
             onFormat={handleTextFormat}
+            onAlign={handleAlignment}
+            currentAlign={element.textAlign}
           />
           <ResizeHandle onResizeStart={handleResizeStart} />
         </>
@@ -70,6 +76,7 @@ const EditorElement: React.FC<EditorElementProps> = ({
           contentEditable={!isPreview}
           suppressContentEditableWarning
           className="w-full h-full p-2"
+          style={{ textAlign: element.textAlign || 'left' }}
           onBlur={(e) => onUpdate({ content: e.currentTarget.innerHTML })}
           dangerouslySetInnerHTML={{ __html: element.content }}
         />
