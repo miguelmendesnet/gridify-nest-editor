@@ -15,7 +15,7 @@ export const useElementOperations = () => {
       position: { x: 0, y: 0 },
       size: { width: 150, height: 50 },
       textAlign: 'left',
-      textSize: 'xl'
+      textSize: 'XL'
     };
     
     setElements(prev => [...prev, newElement]);
