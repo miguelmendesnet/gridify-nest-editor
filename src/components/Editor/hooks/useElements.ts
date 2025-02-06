@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
@@ -67,12 +68,24 @@ export const useElements = () => {
   };
 
   const addImageElement = async (file: File) => {
-    const reader = new FileReader();
-    reader.onload = async (e) => {
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${crypto.randomUUID()}.${fileExt}`;
+      
+      const { error: uploadError, data } = await supabase.storage
+        .from('editor-images')
+        .upload(fileName, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('editor-images')
+        .getPublicUrl(fileName);
+
       const newElement: Element = {
         id: crypto.randomUUID(),
         type: 'image',
-        content: e.target?.result as string,
+        content: publicUrl,
         position: { x: 0, y: 0 },
         size: { width: 150, height: 150 },
       };
@@ -80,8 +93,10 @@ export const useElements = () => {
       setElements(prev => [...prev, newElement]);
       setUnsavedChanges(true);
       toast.success('Added new image element');
-    };
-    reader.readAsDataURL(file);
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      toast.error('Failed to upload image. Please try again.');
+    }
   };
 
   const updateElement = (id: string, updates: Partial<Element>) => {
@@ -92,6 +107,25 @@ export const useElements = () => {
   };
 
   const deleteElement = (id: string) => {
+    // Find the element to check if it's an image
+    const elementToDelete = elements.find(el => el.id === id);
+    
+    if (elementToDelete?.type === 'image') {
+      // Extract the filename from the URL
+      const fileName = elementToDelete.content.split('/').pop();
+      if (fileName) {
+        // Delete the image from storage
+        supabase.storage
+          .from('editor-images')
+          .remove([fileName])
+          .then(({ error }) => {
+            if (error) {
+              console.error('Error deleting image from storage:', error);
+            }
+          });
+      }
+    }
+
     setElements(prev => prev.filter(el => el.id !== id));
     setUnsavedChanges(true);
     toast.success('Element deleted');
