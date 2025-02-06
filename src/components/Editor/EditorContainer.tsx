@@ -1,5 +1,5 @@
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import EditorElement from './EditorElement';
 import EditorToolbar from './EditorToolbar';
 import { useElements } from './hooks/useElements';
@@ -43,17 +43,6 @@ const EditorContainer = () => {
       setIsTransitioning(false);
     }, 300); // Match this with the CSS transition duration
   };
-
-  // Effect to handle fade animation when elements change
-  useEffect(() => {
-    if (elements.length > 0) {
-      setIsTransitioning(true);
-      const timer = setTimeout(() => {
-        setIsTransitioning(false);
-      }, 300);
-      return () => clearTimeout(timer);
-    }
-  }, [elements]);
 
   if (isLoading) {
     return (
