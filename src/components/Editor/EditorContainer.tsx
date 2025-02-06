@@ -17,17 +17,41 @@ const EditorContainer = () => {
   const [selectedElement, setSelectedElement] = useState<string | null>(null);
   const [isPreview, setIsPreview] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const addElement = (type: 'text' | 'image') => {
+  const addTextElement = () => {
     const newElement: Element = {
       id: `element-${Date.now()}`,
-      type,
-      content: type === 'text' ? 'New Text' : 'https://via.placeholder.com/150',
+      type: 'text',
+      content: 'New Text',
       position: { x: 0, y: 0 },
-      size: { width: 150, height: type === 'text' ? 50 : 150 },
+      size: { width: 150, height: 50 },
     };
     setElements([...elements, newElement]);
-    toast.success(`Added new ${type} element`);
+    toast.success('Added new text element');
+  };
+
+  const handleImageSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const newElement: Element = {
+          id: `element-${Date.now()}`,
+          type: 'image',
+          content: e.target?.result as string,
+          position: { x: 0, y: 0 },
+          size: { width: 150, height: 150 },
+        };
+        setElements([...elements, newElement]);
+        toast.success('Added new image element');
+      };
+      reader.readAsDataURL(file);
+    }
+    // Reset the input value to allow selecting the same file again
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   };
 
   const updateElement = (id: string, updates: Partial<Element>) => {
@@ -69,7 +93,7 @@ const EditorContainer = () => {
           <div className="flex gap-4">
             <Button
               variant="outline"
-              onClick={() => addElement('text')}
+              onClick={addTextElement}
               disabled={isPreview}
             >
               <Type className="w-4 h-4 mr-2" />
@@ -77,12 +101,19 @@ const EditorContainer = () => {
             </Button>
             <Button
               variant="outline"
-              onClick={() => addElement('image')}
+              onClick={() => fileInputRef.current?.click()}
               disabled={isPreview}
             >
               <ImageIcon className="w-4 h-4 mr-2" />
               Add Image
             </Button>
+            <input
+              type="file"
+              ref={fileInputRef}
+              className="hidden"
+              accept="image/*"
+              onChange={handleImageSelect}
+            />
           </div>
           <Button
             variant="ghost"
