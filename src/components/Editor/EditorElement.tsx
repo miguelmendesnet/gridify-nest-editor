@@ -2,7 +2,7 @@ import React, { useRef } from 'react';
 import ElementToolbar from './ElementToolbar';
 import ResizeHandle from './ResizeHandle';
 import { useElementInteraction } from './useElementInteraction';
-import type { Element } from './EditorContainer';
+import type { Element } from './types';
 
 interface EditorElementProps {
   element: Element;

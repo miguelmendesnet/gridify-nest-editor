@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import type { Element } from './EditorContainer';
+import type { Element } from './types';
 
 interface UseElementInteractionProps {
   element: Element;
