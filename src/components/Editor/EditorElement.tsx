@@ -1,3 +1,4 @@
+
 import React, { useRef } from 'react';
 import ElementToolbar from './ElementToolbar';
 import ResizeHandle from './ResizeHandle';
@@ -37,6 +38,20 @@ const EditorElement: React.FC<EditorElementProps> = ({
     onUpdate({ textAlign: alignment });
   };
 
+  const handleTextSize = (size: 'S' | 'M' | 'L' | 'XL') => {
+    onUpdate({ textSize: size });
+  };
+
+  const getTextSizeClass = (size?: 'S' | 'M' | 'L' | 'XL') => {
+    switch (size) {
+      case 'S': return 'text-sm';
+      case 'M': return 'text-base';
+      case 'L': return 'text-lg';
+      case 'XL': return 'text-2xl';
+      default: return 'text-base';
+    }
+  };
+
   const handleMouseDown = (e: React.MouseEvent) => {
     if (isPreview) return;
     
@@ -66,6 +81,8 @@ const EditorElement: React.FC<EditorElementProps> = ({
             onFormat={handleTextFormat}
             onAlign={handleAlignment}
             currentAlign={element.textAlign}
+            onTextSize={handleTextSize}
+            currentTextSize={element.textSize}
           />
           <ResizeHandle onResizeStart={handleResizeStart} />
         </>
@@ -75,7 +92,7 @@ const EditorElement: React.FC<EditorElementProps> = ({
         <div
           contentEditable={!isPreview}
           suppressContentEditableWarning
-          className="w-full h-full p-2"
+          className={`w-full h-full p-2 ${getTextSizeClass(element.textSize)}`}
           style={{ textAlign: element.textAlign || 'left' }}
           onBlur={(e) => onUpdate({ content: e.currentTarget.innerHTML })}
           dangerouslySetInnerHTML={{ __html: element.content }}

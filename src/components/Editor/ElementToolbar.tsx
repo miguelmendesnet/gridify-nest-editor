@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Trash2, Bold, Italic, Underline, AlignLeft, AlignCenter, AlignRight } from 'lucide-react';
 import { Button } from "@/components/ui/button";
@@ -8,9 +9,19 @@ interface ElementToolbarProps {
   onFormat?: (format: 'bold' | 'italic' | 'underline') => void;
   onAlign?: (alignment: 'left' | 'center' | 'right') => void;
   currentAlign?: 'left' | 'center' | 'right';
+  onTextSize?: (size: 'S' | 'M' | 'L' | 'XL') => void;
+  currentTextSize?: 'S' | 'M' | 'L' | 'XL';
 }
 
-const ElementToolbar = ({ type, onDelete, onFormat, onAlign, currentAlign = 'left' }: ElementToolbarProps) => {
+const ElementToolbar = ({ 
+  type, 
+  onDelete, 
+  onFormat, 
+  onAlign, 
+  currentAlign = 'left',
+  onTextSize,
+  currentTextSize = 'M'
+}: ElementToolbarProps) => {
   return (
     <div className="editor-toolbar">
       {type === 'text' && (
@@ -58,6 +69,18 @@ const ElementToolbar = ({ type, onDelete, onFormat, onAlign, currentAlign = 'lef
           >
             <AlignRight className="w-4 h-4" />
           </Button>
+          <div className="h-4 w-px bg-border mx-1" />
+          {['S', 'M', 'L', 'XL'].map((size) => (
+            <Button
+              key={size}
+              variant={currentTextSize === size ? 'secondary' : 'ghost'}
+              size="sm"
+              onClick={() => onTextSize?.(size as 'S' | 'M' | 'L' | 'XL')}
+              className="w-8"
+            >
+              {size}
+            </Button>
+          ))}
         </>
       )}
       <Button

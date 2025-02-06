@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
@@ -58,10 +57,11 @@ export const useElements = () => {
     const newElement: Element = {
       id: crypto.randomUUID(),
       type: 'text',
-      content: 'New Text',
+      content: 'Hello World',
       position: { x: 0, y: 0 },
       size: { width: 150, height: 50 },
       textAlign: 'left',
+      textSize: 'XL',
     };
     
     setElements(prev => [...prev, newElement]);
