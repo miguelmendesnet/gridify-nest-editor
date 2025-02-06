@@ -12,10 +12,12 @@ const EditorContainer = () => {
   const {
     elements,
     isLoading,
+    unsavedChanges,
     addTextElement,
     addImageElement,
     updateElement,
-    deleteElement
+    deleteElement,
+    saveChanges
   } = useElements();
 
   if (isLoading) {
@@ -53,10 +55,12 @@ const EditorContainer = () => {
       <EditorToolbar
         isPreview={isPreview}
         showGrid={showGrid}
+        hasUnsavedChanges={unsavedChanges}
         onTogglePreview={() => setIsPreview(!isPreview)}
         onToggleGrid={() => setShowGrid(!showGrid)}
         onAddText={addTextElement}
         onAddImage={addImageElement}
+        onSaveChanges={saveChanges}
       />
     </div>
   );

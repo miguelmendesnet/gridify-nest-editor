@@ -6,6 +6,7 @@ import type { Element } from '../types';
 
 export const useElements = () => {
   const [elements, setElements] = useState<Element[]>([]);
+  const [unsavedChanges, setUnsavedChanges] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
 
@@ -41,6 +42,7 @@ export const useElements = () => {
       }));
 
       setElements(formattedElements);
+      setUnsavedChanges(false);
     } catch (error) {
       console.error('Error loading elements:', error);
       toast.error('Error loading elements. Please try refreshing the page.');
@@ -49,36 +51,53 @@ export const useElements = () => {
     }
   };
 
-  const addTextElement = async () => {
-    try {
-      const { data: session } = await supabase.auth.getSession();
-      if (!session.session) {
-        navigate('/auth');
-        return;
-      }
-
-      const { error } = await supabase
-        .from('elements')
-        .insert({
-          type: 'text',
-          content: 'New Text',
-          position_x: 0,
-          position_y: 0,
-          width: 150,
-          height: 50,
-          text_align: 'left',
-          user_id: session.session.user.id
-        });
-
-      if (error) throw error;
-      toast.success('Added new text element');
-    } catch (error) {
-      toast.error('Error adding text element');
-      console.error('Error:', error);
-    }
+  const addTextElement = () => {
+    const newElement: Element = {
+      id: crypto.randomUUID(),
+      type: 'text',
+      content: 'New Text',
+      position: { x: 0, y: 0 },
+      size: { width: 150, height: 50 },
+      textAlign: 'left',
+    };
+    
+    setElements(prev => [...prev, newElement]);
+    setUnsavedChanges(true);
+    toast.success('Added new text element');
   };
 
   const addImageElement = async (file: File) => {
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      const newElement: Element = {
+        id: crypto.randomUUID(),
+        type: 'image',
+        content: e.target?.result as string,
+        position: { x: 0, y: 0 },
+        size: { width: 150, height: 150 },
+      };
+      
+      setElements(prev => [...prev, newElement]);
+      setUnsavedChanges(true);
+      toast.success('Added new image element');
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const updateElement = (id: string, updates: Partial<Element>) => {
+    setElements(prev => prev.map(el => 
+      el.id === id ? { ...el, ...updates } : el
+    ));
+    setUnsavedChanges(true);
+  };
+
+  const deleteElement = (id: string) => {
+    setElements(prev => prev.filter(el => el.id !== id));
+    setUnsavedChanges(true);
+    toast.success('Element deleted');
+  };
+
+  const saveChanges = async () => {
     try {
       const { data: session } = await supabase.auth.getSession();
       if (!session.session) {
@@ -86,73 +105,37 @@ export const useElements = () => {
         return;
       }
 
-      const reader = new FileReader();
-      reader.onload = async (e) => {
-        const { error } = await supabase
-          .from('elements')
-          .insert({
-            type: 'image',
-            content: e.target?.result as string,
-            position_x: 0,
-            position_y: 0,
-            width: 150,
-            height: 150,
-            user_id: session.session.user.id
-          });
-
-        if (error) throw error;
-        toast.success('Added new image element');
-      };
-      reader.readAsDataURL(file);
-    } catch (error) {
-      toast.error('Error adding image element');
-      console.error('Error:', error);
-    }
-  };
-
-  const updateElement = async (id: string, updates: Partial<Element>) => {
-    try {
-      const updateData: any = {};
-      
-      if (updates.content !== undefined) {
-        updateData.content = updates.content;
-      }
-      if (updates.position) {
-        updateData.position_x = Math.round(updates.position.x);
-        updateData.position_y = Math.round(updates.position.y);
-      }
-      if (updates.size) {
-        updateData.width = Math.round(updates.size.width);
-        updateData.height = Math.round(updates.size.height);
-      }
-      if (updates.textAlign !== undefined) {
-        updateData.text_align = updates.textAlign;
-      }
-
-      const { error } = await supabase
-        .from('elements')
-        .update(updateData)
-        .eq('id', id);
-
-      if (error) throw error;
-    } catch (error) {
-      toast.error('Error updating element');
-      console.error('Error:', error);
-    }
-  };
-
-  const deleteElement = async (id: string) => {
-    try {
-      const { error } = await supabase
+      // First, delete all existing elements
+      const { error: deleteError } = await supabase
         .from('elements')
         .delete()
-        .eq('id', id);
+        .eq('user_id', session.session.user.id);
 
-      if (error) throw error;
-      toast.success('Element deleted');
+      if (deleteError) throw deleteError;
+
+      // Then insert all current elements
+      const elementsToInsert = elements.map(el => ({
+        type: el.type,
+        content: el.content,
+        position_x: Math.round(el.position.x),
+        position_y: Math.round(el.position.y),
+        width: Math.round(el.size.width),
+        height: Math.round(el.size.height),
+        text_align: el.textAlign,
+        user_id: session.session.user.id
+      }));
+
+      const { error: insertError } = await supabase
+        .from('elements')
+        .insert(elementsToInsert);
+
+      if (insertError) throw insertError;
+
+      setUnsavedChanges(false);
+      toast.success('Changes saved successfully');
     } catch (error) {
-      toast.error('Error deleting element');
-      console.error('Error:', error);
+      console.error('Error saving changes:', error);
+      toast.error('Error saving changes. Please try again.');
     }
   };
 
@@ -185,9 +168,11 @@ export const useElements = () => {
   return {
     elements,
     isLoading,
+    unsavedChanges,
     addTextElement,
     addImageElement,
     updateElement,
-    deleteElement
+    deleteElement,
+    saveChanges
   };
 };

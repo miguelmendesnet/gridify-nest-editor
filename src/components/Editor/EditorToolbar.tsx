@@ -1,6 +1,6 @@
 import React, { useRef } from 'react';
 import { Button } from "@/components/ui/button";
-import { Eye, EyeOff, Type, Image as ImageIcon, Grid, LogOut } from 'lucide-react';
+import { Eye, EyeOff, Type, Image as ImageIcon, Grid, LogOut, Save } from 'lucide-react';
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from 'sonner';
@@ -8,19 +8,23 @@ import { toast } from 'sonner';
 interface EditorToolbarProps {
   isPreview: boolean;
   showGrid: boolean;
+  hasUnsavedChanges: boolean;
   onTogglePreview: () => void;
   onToggleGrid: () => void;
   onAddText: () => void;
   onAddImage: (file: File) => void;
+  onSaveChanges: () => void;
 }
 
 const EditorToolbar = ({
   isPreview,
   showGrid,
+  hasUnsavedChanges,
   onTogglePreview,
   onToggleGrid,
   onAddText,
-  onAddImage
+  onAddImage,
+  onSaveChanges
 }: EditorToolbarProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
@@ -90,6 +94,14 @@ const EditorToolbar = ({
       >
         <Grid className="w-4 h-4 mr-2" />
         {showGrid ? 'Hide Grid' : 'Show Grid'}
+      </Button>
+      <Button
+        variant={hasUnsavedChanges ? "default" : "ghost"}
+        onClick={onSaveChanges}
+        disabled={!hasUnsavedChanges || isPreview}
+      >
+        <Save className="w-4 h-4 mr-2" />
+        Save Changes
       </Button>
       <div className="w-px h-8 bg-border mx-1" />
       <Button
