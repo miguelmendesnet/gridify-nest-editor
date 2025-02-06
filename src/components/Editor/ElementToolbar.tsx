@@ -83,9 +83,10 @@ const ElementToolbar = ({
               variant={currentTextSize === size ? 'secondary' : 'ghost'}
               size="sm"
               onClick={() => onTextSize?.(size)}
-              className="w-12"
+              className="w-16 flex flex-col items-center gap-0.5"
             >
-              {sizeLabels[size]}
+              <span className="text-xs">{size}</span>
+              <span className="text-[10px] text-muted-foreground">{sizeLabels[size]}</span>
             </Button>
           ))}
         </>
