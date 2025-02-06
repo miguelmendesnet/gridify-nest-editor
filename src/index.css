@@ -99,6 +99,7 @@
 
 .preview-mode .editor-toolbar,
 .preview-mode .editor-element:hover,
+.preview-mode .editor-element.selected,
 .preview-mode .resize-handle {
   display: none;
 }

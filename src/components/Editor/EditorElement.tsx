@@ -43,8 +43,8 @@ const EditorElement: React.FC<EditorElementProps> = ({
     const target = e.target as HTMLElement;
     if (!target.classList.contains('resize-handle')) {
       handleDragStart(e);
+      onSelect();
     }
-    onSelect();
   };
 
   return (
@@ -85,6 +85,7 @@ const EditorElement: React.FC<EditorElementProps> = ({
           src={element.content}
           alt="Editor element"
           className="w-full h-full object-cover"
+          draggable={false}
         />
       )}
     </div>
