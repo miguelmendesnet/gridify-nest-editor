@@ -42,11 +42,12 @@ export const useElementInteraction = ({ element, onUpdate, isPreview }: UseEleme
       const newX = Math.max(0, Math.min(e.clientX - dragStart.x, 1140 - element.size.width));
       const newY = Math.max(0, e.clientY - dragStart.y);
       
-      // Snap to grid
-      const snappedX = Math.round(newX / GRID_COLUMN_WIDTH) * GRID_COLUMN_WIDTH;
+      // Snap to grid and round to integers
+      const snappedX = Math.round(Math.round(newX / GRID_COLUMN_WIDTH) * GRID_COLUMN_WIDTH);
+      const roundedY = Math.round(newY);
       
       onUpdate({
-        position: { x: snappedX, y: newY }
+        position: { x: snappedX, y: roundedY }
       });
     } else if (isResizing) {
       const deltaX = e.clientX - resizeStart.x;
@@ -55,11 +56,12 @@ export const useElementInteraction = ({ element, onUpdate, isPreview }: UseEleme
       let newWidth = Math.max(MIN_WIDTH, resizeStart.width + deltaX);
       const newHeight = Math.max(MIN_HEIGHT, resizeStart.height + deltaY);
       
-      newWidth = Math.round(newWidth / GRID_COLUMN_WIDTH) * GRID_COLUMN_WIDTH;
+      // Snap to grid and round to integers
+      newWidth = Math.round(Math.round(newWidth / GRID_COLUMN_WIDTH) * GRID_COLUMN_WIDTH);
       newWidth = Math.min(newWidth, 1140 - element.position.x);
       
       onUpdate({
-        size: { width: newWidth, height: newHeight }
+        size: { width: newWidth, height: Math.round(newHeight) }
       });
     }
   };

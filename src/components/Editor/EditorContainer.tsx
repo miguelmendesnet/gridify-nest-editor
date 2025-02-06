@@ -48,8 +48,8 @@ const EditorContainer = () => {
         id: el.id,
         type: el.type as 'text' | 'image',
         content: el.content,
-        position: { x: el.position_x, y: el.position_y },
-        size: { width: el.width, height: el.height },
+        position: { x: Math.round(el.position_x), y: Math.round(el.position_y) },
+        size: { width: Math.round(el.width), height: Math.round(el.height) },
         textAlign: el.text_align as 'left' | 'center' | 'right' | undefined,
       }));
 
@@ -149,16 +149,26 @@ const EditorContainer = () => {
 
   const updateElement = async (id: string, updates: Partial<Element>) => {
     try {
+      const updateData: any = {};
+      
+      if (updates.content !== undefined) {
+        updateData.content = updates.content;
+      }
+      if (updates.position) {
+        updateData.position_x = Math.round(updates.position.x);
+        updateData.position_y = Math.round(updates.position.y);
+      }
+      if (updates.size) {
+        updateData.width = Math.round(updates.size.width);
+        updateData.height = Math.round(updates.size.height);
+      }
+      if (updates.textAlign !== undefined) {
+        updateData.text_align = updates.textAlign;
+      }
+
       const { error } = await supabase
         .from('elements')
-        .update({
-          content: updates.content,
-          position_x: updates.position?.x,
-          position_y: updates.position?.y,
-          width: updates.size?.width,
-          height: updates.size?.height,
-          text_align: updates.textAlign,
-        })
+        .update(updateData)
         .eq('id', id);
 
       if (error) throw error;
