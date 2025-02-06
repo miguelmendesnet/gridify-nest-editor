@@ -62,23 +62,41 @@ const EditorToolbar = ({
 
   return (
     <div className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-background rounded-lg shadow-lg border p-2 flex gap-2">
-      <Button
-        variant="outline"
-        onClick={onAddText}
-        disabled={isPreview}
-      >
-        <Type className="w-4 h-4 mr-2" />
-        Add Text
-      </Button>
-      <Button
-        variant="outline"
-        onClick={() => fileInputRef.current?.click()}
-        disabled={isPreview}
-      >
-        <ImageIcon className="w-4 h-4 mr-2" />
-        Add Image
-      </Button>
-      <div className="w-px h-8 bg-border mx-1" />
+      {!isPreview && (
+        <>
+          <Button
+            variant="outline"
+            onClick={onAddText}
+          >
+            <Type className="w-4 h-4 mr-2" />
+            Add Text
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => fileInputRef.current?.click()}
+          >
+            <ImageIcon className="w-4 h-4 mr-2" />
+            Add Image
+          </Button>
+          <div className="w-px h-8 bg-border mx-1" />
+          <Button
+            variant="ghost"
+            onClick={onToggleGrid}
+          >
+            <Grid className="w-4 h-4 mr-2" />
+            {showGrid ? 'Hide Grid' : 'Show Grid'}
+          </Button>
+          <Button
+            variant={hasUnsavedChanges ? "default" : "ghost"}
+            onClick={onSaveChanges}
+            disabled={!hasUnsavedChanges}
+          >
+            <Save className="w-4 h-4 mr-2" />
+            Save Changes
+          </Button>
+          <div className="w-px h-8 bg-border mx-1" />
+        </>
+      )}
       <Button
         variant="ghost"
         onClick={onTogglePreview}
@@ -89,22 +107,6 @@ const EditorToolbar = ({
           <><Eye className="w-4 h-4 mr-2" /> Preview</>
         )}
       </Button>
-      <Button
-        variant="ghost"
-        onClick={onToggleGrid}
-      >
-        <Grid className="w-4 h-4 mr-2" />
-        {showGrid ? 'Hide Grid' : 'Show Grid'}
-      </Button>
-      <Button
-        variant={hasUnsavedChanges ? "default" : "ghost"}
-        onClick={onSaveChanges}
-        disabled={!hasUnsavedChanges || isPreview}
-      >
-        <Save className="w-4 h-4 mr-2" />
-        Save Changes
-      </Button>
-      <div className="w-px h-8 bg-border mx-1" />
       <Button
         variant="ghost"
         onClick={handleSignOut}
