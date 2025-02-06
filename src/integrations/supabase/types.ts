@@ -18,7 +18,6 @@ export type Database = {
           position_x: number
           position_y: number
           text_align: string | null
-          text_size: string | null
           type: string
           user_id: string
           width: number
@@ -31,7 +30,6 @@ export type Database = {
           position_x: number
           position_y: number
           text_align?: string | null
-          text_size?: string | null
           type: string
           user_id: string
           width: number
@@ -44,7 +42,6 @@ export type Database = {
           position_x?: number
           position_y?: number
           text_align?: string | null
-          text_size?: string | null
           type?: string
           user_id?: string
           width?: number
