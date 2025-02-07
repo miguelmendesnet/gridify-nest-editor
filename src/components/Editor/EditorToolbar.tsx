@@ -8,10 +8,8 @@ import { toast } from 'sonner';
 
 interface EditorToolbarProps {
   isPreview: boolean;
-  showGrid: boolean;
   hasUnsavedChanges: boolean;
   onTogglePreview: () => void;
-  onToggleGrid: () => void;
   onAddText: () => void;
   onAddImage: (file: File) => void;
   onSaveChanges: () => void;
@@ -65,6 +63,7 @@ const EditorToolbar = ({
           <Button
             variant="outline"
             onClick={onAddText}
+            className="hover:bg-primary/10 hover:text-primary"
           >
             <Type className="w-4 h-4 mr-2" />
             Add Text
@@ -72,6 +71,7 @@ const EditorToolbar = ({
           <Button
             variant="outline"
             onClick={() => fileInputRef.current?.click()}
+            className="hover:bg-primary/10 hover:text-primary"
           >
             <ImageIcon className="w-4 h-4 mr-2" />
             Add Image
@@ -80,6 +80,7 @@ const EditorToolbar = ({
             variant={hasUnsavedChanges ? "default" : "ghost"}
             onClick={onSaveChanges}
             disabled={!hasUnsavedChanges}
+            className={hasUnsavedChanges ? "hover:bg-primary/90" : "hover:bg-primary/10 hover:text-primary"}
           >
             <Save className="w-4 h-4 mr-2" />
             Save Changes
@@ -90,6 +91,7 @@ const EditorToolbar = ({
       <Button
         variant="ghost"
         onClick={onTogglePreview}
+        className="hover:bg-primary/10 hover:text-primary"
       >
         {isPreview ? (
           <><EyeOff className="w-4 h-4 mr-2" /> Exit Preview</>
@@ -100,6 +102,7 @@ const EditorToolbar = ({
       <Button
         variant="ghost"
         onClick={handleSignOut}
+        className="hover:bg-destructive/10 hover:text-destructive"
       >
         <LogOut className="w-4 h-4 mr-2" />
         Sign Out
