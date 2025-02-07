@@ -41,12 +41,9 @@ const App = () => {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log("Auth state changed:", event);
-      if (event === 'SIGNED_OUT' || event === 'USER_DELETED') {
+      if (event === 'SIGNED_OUT') {
         // Clear any cached data
         queryClient.clear();
-        if (event === 'USER_DELETED') {
-          toast.error("Your account has been deleted.");
-        }
       } else if (event === 'TOKEN_REFRESHED') {
         console.log('Token refreshed successfully');
       }

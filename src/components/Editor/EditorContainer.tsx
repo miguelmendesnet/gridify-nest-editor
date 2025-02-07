@@ -8,7 +8,6 @@ import { Element } from './types';
 const EditorContainer = () => {
   const [selectedElement, setSelectedElement] = useState<string | null>(null);
   const [isPreview, setIsPreview] = useState(false);
-  const [showGrid, setShowGrid] = useState(true);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   
@@ -59,7 +58,7 @@ const EditorContainer = () => {
           ref={containerRef}
           className={`editor-grid relative transition-opacity duration-300 ${
             isTransitioning ? 'opacity-0' : 'opacity-100'
-          } ${isPreview ? 'preview-mode' : ''} ${!showGrid ? 'hide-grid' : ''}`}
+          } ${isPreview ? 'preview-mode' : ''}`}
           onClick={handleContainerClick}
         >
           {elements.map((element) => (
@@ -87,10 +86,8 @@ const EditorContainer = () => {
       
       <EditorToolbar
         isPreview={isPreview}
-        showGrid={showGrid}
         hasUnsavedChanges={unsavedChanges}
         onTogglePreview={() => setIsPreview(!isPreview)}
-        onToggleGrid={() => setShowGrid(!showGrid)}
         onAddText={addTextElement}
         onAddImage={addImageElement}
         onSaveChanges={saveChanges}
@@ -100,4 +97,3 @@ const EditorContainer = () => {
 };
 
 export default EditorContainer;
-
