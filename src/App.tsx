@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -22,7 +23,14 @@ const App = () => {
     supabase.auth.getSession().then(({ data: { session }, error }) => {
       if (error) {
         console.error("Error fetching session:", error);
-        toast.error("Session error. Please login again.");
+        if (error.message?.includes('refresh_token_not_found')) {
+          supabase.auth.signOut().then(() => {
+            queryClient.clear();
+            toast.error("Session expired. Please sign in again.");
+          });
+        } else {
+          toast.error("Authentication error. Please try again.");
+        }
       }
       setSession(session);
       setLoading(false);
@@ -31,11 +39,16 @@ const App = () => {
     // Listen for auth changes
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      console.log("Auth state changed:", _event);
-      if (_event === 'SIGNED_OUT') {
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log("Auth state changed:", event);
+      if (event === 'SIGNED_OUT' || event === 'USER_DELETED') {
         // Clear any cached data
         queryClient.clear();
+        if (event === 'USER_DELETED') {
+          toast.error("Your account has been deleted.");
+        }
+      } else if (event === 'TOKEN_REFRESHED') {
+        console.log('Token refreshed successfully');
       }
       setSession(session);
     });

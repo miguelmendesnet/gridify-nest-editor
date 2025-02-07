@@ -1,4 +1,5 @@
-import { useState } from "react";
+
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,6 +14,30 @@ const Auth = () => {
   const [isSignUp, setIsSignUp] = useState(false);
   const [error, setError] = useState("");
   const navigate = useNavigate();
+
+  useEffect(() => {
+    // Check auth state on component mount
+    const checkSession = async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        if (error) {
+          if (error.message?.includes('refresh_token_not_found')) {
+            // Clear any existing auth state
+            await supabase.auth.signOut();
+          }
+          throw error;
+        }
+        if (session) {
+          navigate('/');
+        }
+      } catch (error: any) {
+        console.error('Session check error:', error);
+        // Don't show error to user as this is just an initial check
+      }
+    };
+
+    checkSession();
+  }, [navigate]);
 
   const validatePassword = (password: string) => {
     if (password.length < 6) {
@@ -37,22 +62,37 @@ const Auth = () => {
     setLoading(true);
 
     try {
-      const { error } = isSignUp
-        ? await supabase.auth.signUp({ email, password })
+      const { data, error } = isSignUp
+        ? await supabase.auth.signUp({ 
+            email, 
+            password,
+            options: {
+              emailRedirectTo: window.location.origin
+            }
+          })
         : await supabase.auth.signInWithPassword({ email, password });
 
       if (error) throw error;
 
       if (isSignUp) {
-        toast.success("Check your email for the confirmation link!");
+        if (data.user && !data.session) {
+          toast.success("Check your email for the confirmation link!");
+        } else {
+          toast.success("Account created successfully!");
+          navigate("/");
+        }
       } else {
         toast.success("Successfully logged in!");
         navigate("/");
       }
     } catch (error: any) {
       let message = error.message;
-      if (error.message.includes("weak_password")) {
+      if (message.includes("Invalid refresh token")) {
+        message = "Your session has expired. Please sign in again.";
+      } else if (message.includes("weak_password")) {
         message = "Password should be at least 6 characters long";
+      } else if (message.includes("Email not confirmed")) {
+        message = "Please confirm your email address before signing in";
       }
       setError(message);
       toast.error(message);
