@@ -1,7 +1,7 @@
 
 import React, { useRef } from 'react';
 import { Button } from "@/components/ui/button";
-import { Eye, EyeOff, Type, Image as ImageIcon, LogOut, Save, Icons } from 'lucide-react';
+import { Eye, EyeOff, Type, Image as ImageIcon, LogOut, Save, icons } from 'lucide-react';
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from 'sonner';
@@ -83,7 +83,7 @@ const EditorToolbar = ({
             onClick={onAddIcon}
             className="hover:bg-primary/10 hover:text-primary"
           >
-            <Icons className="w-4 h-4 mr-2" />
+            <icons.User className="w-4 h-4 mr-2" />
             Add Icon
           </Button>
           <Button
@@ -129,4 +129,3 @@ const EditorToolbar = ({
 };
 
 export default EditorToolbar;
-
