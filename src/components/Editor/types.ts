@@ -9,4 +9,3 @@ export type Element = {
   textSize?: 'S' | 'M' | 'L' | 'XL';
   iconType?: 'arrow-down' | 'arrow-left' | 'arrow-right' | 'arrow-up' | 'check' | 'x' | 'plus' | 'minus' | 'search' | 'user';
 };
-

@@ -17,12 +17,13 @@ export const loadElementsFromDatabase = async (userId: string) => {
 
   return data.map(el => ({
     id: el.id,
-    type: el.type as 'text' | 'image',
+    type: el.type as 'text' | 'image' | 'icon',
     content: el.content,
     position: { x: Math.round(el.position_x), y: Math.round(el.position_y) },
     size: { width: Math.round(el.width), height: Math.round(el.height) },
     textAlign: el.text_align as 'left' | 'center' | 'right' | undefined,
     textSize: isValidTextSize(el.text_size) ? el.text_size : 'M',
+    iconType: el.type === 'icon' ? el.content as Element['iconType'] : undefined,
   }));
 };
 
