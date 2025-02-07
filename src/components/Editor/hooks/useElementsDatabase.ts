@@ -43,7 +43,7 @@ export const saveElementsToDatabase = async (elements: Element[], userId: string
     width: Math.round(el.size.width),
     height: Math.round(el.size.height),
     text_align: el.textAlign,
-    text_size: el.textSize,
+    text_size: el.type === 'text' ? el.textSize : null,
     user_id: userId
   }));
 
@@ -66,3 +66,4 @@ export const deleteImageFromStorage = async (imageUrl: string) => {
     }
   }
 };
+
