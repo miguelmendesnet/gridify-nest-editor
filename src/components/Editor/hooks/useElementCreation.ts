@@ -41,3 +41,13 @@ export const createImageElement = async (file: File): Promise<Element | null> =>
     return null;
   }
 };
+
+export const createIconElement = (iconType: Element['iconType']): Element => ({
+  id: crypto.randomUUID(),
+  type: 'icon',
+  content: iconType || 'user',
+  position: { x: 0, y: 0 },
+  size: { width: 50, height: 50 },
+  iconType: iconType || 'user'
+});
+

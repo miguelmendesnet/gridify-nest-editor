@@ -1,7 +1,7 @@
 
 import React, { useRef } from 'react';
 import { Button } from "@/components/ui/button";
-import { Eye, EyeOff, Type, Image as ImageIcon, LogOut, Save } from 'lucide-react';
+import { Eye, EyeOff, Type, Image as ImageIcon, LogOut, Save, Icons } from 'lucide-react';
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from 'sonner';
@@ -12,6 +12,7 @@ interface EditorToolbarProps {
   onTogglePreview: () => void;
   onAddText: () => void;
   onAddImage: (file: File) => void;
+  onAddIcon: () => void;
   onSaveChanges: () => void;
 }
 
@@ -21,6 +22,7 @@ const EditorToolbar = ({
   onTogglePreview,
   onAddText,
   onAddImage,
+  onAddIcon,
   onSaveChanges
 }: EditorToolbarProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -77,6 +79,14 @@ const EditorToolbar = ({
             Add Image
           </Button>
           <Button
+            variant="outline"
+            onClick={onAddIcon}
+            className="hover:bg-primary/10 hover:text-primary"
+          >
+            <Icons className="w-4 h-4 mr-2" />
+            Add Icon
+          </Button>
+          <Button
             variant={hasUnsavedChanges ? "default" : "ghost"}
             onClick={onSaveChanges}
             disabled={!hasUnsavedChanges}
@@ -119,3 +129,4 @@ const EditorToolbar = ({
 };
 
 export default EditorToolbar;
+

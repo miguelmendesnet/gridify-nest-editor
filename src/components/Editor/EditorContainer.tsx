@@ -4,6 +4,7 @@ import EditorElement from './EditorElement';
 import EditorToolbar from './EditorToolbar';
 import { useElements } from './hooks/useElements';
 import { Element } from './types';
+import { createIconElement } from './hooks/useElementCreation';
 
 const EditorContainer = () => {
   const [selectedElement, setSelectedElement] = useState<string | null>(null);
@@ -43,6 +44,12 @@ const EditorContainer = () => {
     }, 300);
   };
 
+  const addIconElement = () => {
+    const newElement = createIconElement('user');
+    elements.push(newElement);
+    setSelectedElement(newElement.id);
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-secondary/50 flex items-center justify-center">
@@ -73,7 +80,7 @@ const EditorContainer = () => {
                 setSelectedElement(null);
               }}
               onDuplicate={() => {
-                if (element.type === 'image') {
+                if (element.type === 'image' || element.type === 'icon') {
                   const duplicated = duplicateElement(element);
                   setSelectedElement(duplicated.id);
                 }
@@ -90,6 +97,7 @@ const EditorContainer = () => {
         onTogglePreview={() => setIsPreview(!isPreview)}
         onAddText={addTextElement}
         onAddImage={addImageElement}
+        onAddIcon={addIconElement}
         onSaveChanges={saveChanges}
       />
     </div>
@@ -97,3 +105,4 @@ const EditorContainer = () => {
 };
 
 export default EditorContainer;
+
